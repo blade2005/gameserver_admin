@@ -1,0 +1,11 @@
+#!/bin/bash
+test -e ~/.installed_games || exit 1
+cat ~/.installed_games | while read gameid gamename;do
+    ~/bin/check-newest-build $gameid $gamename
+    returnval=$?
+    if [ "$returnval" -eq "1" ];then
+        ~/bin/update-game $gameid $gamename
+    else
+        echo "$gamename is already up to date. Skipping"
+    fi
+done

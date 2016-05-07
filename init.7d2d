@@ -1,0 +1,47 @@
+#!/bin/bash
+GAME_NAME='7 Days to Die'
+BIN=/home/steam/gameservers/7d2d/7DaysToDieServer.x86
+. ~/.config/gameservers/7d2d
+
+start() {
+    cd $(dirname $BIN)
+    $BIN $ARGS >/dev/null 2>&1 &
+    sleep 5
+    local PROCESS_IDS=$(pgrep -f $BIN)
+    if [[ ! -z $PROCESS_IDS ]]; then
+        echo "Started $GAME_NAME"
+    fi
+}
+stop() {
+    local PROCESS_IDS=$(pgrep -f $BIN)
+
+    if [[ ! -z $PROCESS_IDS ]]; then
+        kill $PROCESS_IDS
+        echo "Stopped $GAME_NAME"
+    fi
+}
+
+status() {
+    local PROCESS_IDS=$(pgrep -f $BIN)
+
+    if [[ ! -z $PROCESS_IDS ]]; then
+        echo "$GAME_NAME is Running"
+    else
+        echo "$GAME_NAME is not running"
+    fi
+}
+
+restart() {
+    status
+    stop
+    start
+}
+
+action=$1
+if [ -z "$action" ]; then
+    echo "Please provide action (start stop status restart)"
+    exit 1;
+fi
+
+type $action >/dev/null 2>&1 && $action || echo "No action found for $action"
+exit 0

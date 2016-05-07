@@ -1,0 +1,45 @@
+#!/bin/bash
+GAME_NAME='Ark'
+BIN=/home/steam/gameservers/ark/ShooterGame/Binaries/Linux/ShooterGameServer
+. ~/.config/gameservers/ark
+
+start() {
+    $BIN $ARGS  > /home/steam/gameservers/ark/log/stdout.log 2>/home/steam/gameservers/ark/log/stderr.log &
+    sleep 5
+    local PROCESS_IDS=$(pgrep -f $BIN)
+    if [[ ! -z $PROCESS_IDS ]]; then
+        echo "Started $GAME_NAME"
+    fi
+}
+stop() {
+    local PROCESS_IDS=$(pgrep -f $BIN)
+
+    if [[ ! -z $PROCESS_IDS ]]; then
+        kill -s INT $PROCESS_IDS
+        echo "Stopped $GAME_NAME"
+    fi
+}
+
+status() {
+    local PROCESS_IDS=$(pgrep -f $BIN)
+
+    if [[ ! -z $PROCESS_IDS ]]; then
+        echo "$GAME_NAME is Running"
+    else
+        echo "$GAME_NAME is not running"
+    fi
+}
+
+restart() {
+    status
+    stop
+    start
+}
+
+action=$1
+if [ -z "$action" ]; then
+    echo "Please provide action (start stop status restart)"
+    exit 1;
+fi
+
+type $action >/dev/null 2>&1 && $action || echo "No action found for $action"

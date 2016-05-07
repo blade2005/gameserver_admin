@@ -1,0 +1,75 @@
+#!/bin/bash
+gameid=$1
+gamename=$2
+
+function usage {
+    echo "Usage $0 <gameid> <gamename>"
+    exit 1
+}
+
+test -n "$gameid" || usage
+test -n "$gamename" || usage
+
+
+filecount=$(find ~/gameservers/$gamename -name "appmanifest_${gameid}.acf" | wc -l)
+files=$(find ~/gameservers/$gamename -name "appmanifest_${gameid}.acf")
+
+if [ "$filecount" -ge "2" ];then
+    echo "Found too many game manifestos"
+    exit 2
+fi
+
+if [ "$filecount" -eq "0" ];then
+    echo "Found no game manifestos"
+    exit 2
+fi
+
+
+currentbuild=$(grep buildid "${files}" | tr '[:blank:]"' ' ' | tr -s ' ' | cut -d\  -f3)
+
+if [ -z "$currentbuild" ];then
+    echo "Unable to find current build"
+    exit 2
+fi
+
+cd ~/steamcmd
+availablebuild=$(./steamcmd.sh +login anonymous +app_info_update 1 +app_info_print "$gameid" +app_info_print "$gameid" +quit | \
+grep -EA 1000 "^\s+\"branches\"$" | \
+grep -EA 5 "^\s+\"public\"$" | \
+grep -m 1 -EB 10 "^\s+}$" | \
+grep -E "^\s+\"buildid\"\s+" | \
+tr '[:blank:]"' ' ' | \
+tr -s ' ' | \
+cut -d\  -f3)
+
+if [ -z "$availablebuild" ];then
+    echo "Unable to find latest build"
+    exit 2
+fi
+
+
+if [ "${currentbuild}" != "${availablebuild}" ]; then
+    echo -e "Update available:"
+    sleep 1
+    echo -e "	Current build: \e[0;31m${currentbuild}\e[0;39m"
+    echo -e "	Available build: \e[0;32m${availablebuild}\e[0;39m"
+    echo -e ""
+    echo -e "	https://steamdb.info/app/${gameid}/"
+    sleep 1
+    echo ""
+    echo -en "Applying update.\r"
+    sleep 1
+    echo -en "Applying update..\r"
+    sleep 1
+    echo -en "Applying update...\r"
+    sleep 1
+    echo -en "\n"
+    exit 1
+else
+    echo -e "No update available:"
+    echo -e "	Current version: \e[0;32m${currentbuild}\e[0;39m"
+    echo -e "	Available version: \e[0;32m${availablebuild}\e[0;39m"
+    echo -e "	https://steamdb.info/app/${gameid}/"
+    echo -e ""
+    exit 0
+fi

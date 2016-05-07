@@ -1,0 +1,12 @@
+#!/bin/bash
+game_id=$1
+game_name=$2
+if [ -z "$game_id" ];then echo "Missing Game id. Exiting"; exit 1;fi
+if [ -z "$game_name" ];then echo "Missing Game name. Exiting"; exit 1;fi
+
+mkdir -p /home/steam/gameservers/$game_name/log
+cd ~/steamcmd
+./steamcmd.sh +login anonymous +force_install_dir /home/steam/gameservers/$game_name +app_update "$game_id validate" +quit
+echo "$game_id $game_name" >> ~/.installed_games
+sort -n -u ~/.installed_games > ~/.installed_games.2
+mv ~/.installed_games{.2,}

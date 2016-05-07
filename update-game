@@ -1,0 +1,21 @@
+#!/bin/bash
+gameid=$1
+gamename=$2
+
+function usage {
+    echo "Usage $0 <gameid> <gamename>"
+    exit 1
+}
+
+test -n "$gameid" || usage
+test -n "$gamename" || usage
+
+if [ ! -e ~/bin/init.$gamename ];then
+    echo "Unable to locat init script in ~/bin"
+    exit 1
+fi
+
+echo "Updating $gamename"
+~/bin/init.$gamename stop
+~/bin/install-game-server $gameid $gamename && \
+~/bin/init.$gamename start
